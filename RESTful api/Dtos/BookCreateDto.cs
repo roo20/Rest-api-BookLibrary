@@ -6,7 +6,7 @@ namespace RESTful_api.Dtos;
 public class BookCreateDto
 {
     [Required]
-    public string Auther { get; set; } = string.Empty;
+    public string Author { get; set; } = string.Empty;
 
     [Required]
     public string Title { get; set; } = string.Empty;
