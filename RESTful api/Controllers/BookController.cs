@@ -1,22 +1,29 @@
 ﻿using AutoMapper;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using RESTful_api.Data;
 using RESTful_api.Dtos;
 using RESTful_api.Models;
+using RESTful_api.Validators;
 
 namespace RESTful_api.Controllers;
 
-[Route("api/v1/[controller]")]
 [ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class BookController : ControllerBase
 {
     private readonly IBookRepo _bookRepo;
     private readonly IMapper _mapper;
+    private readonly IValidator<BookCreateDto> _validator;
 
-    public BookController(IBookRepo bookRepo, IMapper mapper)
+
+    public BookController(IBookRepo bookRepo, IMapper mapper, IValidator<BookCreateDto> validator)
 	{
 		_bookRepo=bookRepo;
 		_mapper=mapper;
+        _validator=validator;
 	}
 
 	[HttpGet]
@@ -43,6 +50,14 @@ public class BookController : ControllerBase
     [HttpPost]
     public ActionResult<BookReadDto> CreateBook(BookCreateDto bookCreateDto)
     {
+       
+        var validatorResult = _validator.Validate(bookCreateDto);
+
+        if (!validatorResult.IsValid)
+        {
+            return StatusCode(StatusCodes.Status400BadRequest, validatorResult.Errors);
+        }
+
         var bookModel=_mapper.Map<Book>(bookCreateDto);
         _bookRepo.CreateBook(bookModel);
         _bookRepo.SaveChanges();
@@ -50,6 +65,19 @@ public class BookController : ControllerBase
         var bookReadDto=_mapper.Map<BookReadDto>(bookModel);
 
         return CreatedAtRoute(nameof(GetBookById), new { id=bookReadDto.Id},bookReadDto );
+    }
+
+    [HttpDelete("{id}")]
+    public ActionResult DeleteBook(int id)
+    {
+        var bookToDelete = _bookRepo.GetBookById(id);
+        if (bookToDelete == null)
+        {
+            return NotFound();
+        }
+        _bookRepo.DeleteBook(bookToDelete);
+        _bookRepo.SaveChanges();
+        return NoContent();
     }
 
 }

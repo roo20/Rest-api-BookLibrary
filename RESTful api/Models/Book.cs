@@ -20,13 +20,14 @@ public class Book
     public string Genre { get; set; } = string.Empty;
 
     [Required]
-    [Range(0, float.MaxValue, ErrorMessage = "Price cannot be Negative !")]
+   
     public float Price { get; set; }
 
     [Required]
     public DateTime PublishDate { get; set; }
 
     [Required]
+    
     public string Description { get; set; } = string.Empty;
 
 

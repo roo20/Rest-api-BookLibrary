@@ -1,4 +1,5 @@
-﻿using RESTful_api.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using RESTful_api.Models;
 using System;
 
 namespace RESTful_api.Data;
@@ -35,5 +36,21 @@ public class BookRepo : IBookRepo
     public bool SaveChanges()
     {
         return (_appDbContext.SaveChanges () >= 0);
+    }
+
+    
+
+    public void UpdateBook(Book book)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void DeleteBook(Book book)
+    {
+        if (book == null)
+        {
+            throw new ArgumentNullException(nameof(book));
+        }
+        _appDbContext.Books.Remove(book);
     }
 }
