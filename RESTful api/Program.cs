@@ -1,10 +1,13 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using RESTful_api.Contracts;
 using RESTful_api.Data;
 using RESTful_api.Dtos;
+using RESTful_api.LoggerService;
 using RESTful_api.Models;
 using RESTful_api.Validators;
 using System;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,8 +16,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers(options =>
 {
-  options.ReturnHttpNotAcceptable = true;
-}).AddXmlDataContractSerializerFormatters(); 
+    options.ReturnHttpNotAcceptable = true;
+}).AddNewtonsoftJson()
+    .AddXmlDataContractSerializerFormatters();
 
 builder.Services.AddDbContext<AppDbContext>(
     option => option.UseSqlite(builder.Configuration.GetConnectionString("Default"))
@@ -23,8 +27,10 @@ builder.Services.AddDbContext<AppDbContext>(
 
 builder.Services.AddScoped<IBookRepo, BookRepo>();
 builder.Services.AddScoped<IValidator<BookCreateDto>, BookValidator>();
-
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddScoped<ILoggerManager, LoggerManager>();
+
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
