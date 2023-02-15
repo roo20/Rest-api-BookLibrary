@@ -1,11 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace RESTful_api.Dtos;
+﻿namespace RESTful_api.Dtos;
 
 public class BookReadDto
 {
 
- 
+
     public int Id { get; set; }
 
 

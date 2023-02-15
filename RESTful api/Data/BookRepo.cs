@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using RESTful_api.Models;
-using System;
+﻿using RESTful_api.Models;
 
 namespace RESTful_api.Data;
 
@@ -14,9 +12,9 @@ public class BookRepo : IBookRepo
 
     public void CreateBook(Book book)
     {
-        if(book == null)
+        if (book == null)
         {
-           throw new ArgumentNullException(nameof(book));
+            throw new ArgumentNullException(nameof(book));
         }
 
         _appDbContext.Books.Add(book);
@@ -29,16 +27,16 @@ public class BookRepo : IBookRepo
 
     public Book GetBookById(int id)
     {
-       
-        return _appDbContext.Books.FirstOrDefault(b=>b.Id ==id);
+
+        return _appDbContext.Books.FirstOrDefault(b => b.Id == id);
     }
 
     public bool SaveChanges()
     {
-        return (_appDbContext.SaveChanges () >= 0);
+        return (_appDbContext.SaveChanges() >= 0);
     }
 
-    
+
 
     public void UpdateBook(Book book)
     {

@@ -1,12 +1,10 @@
 ﻿using AutoMapper;
 using FluentValidation;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using RESTful_api.Contracts;
 using RESTful_api.Data;
 using RESTful_api.Dtos;
 using RESTful_api.Models;
-using RESTful_api.Validators;
 
 namespace RESTful_api.Controllers;
 
@@ -18,22 +16,27 @@ public class BookController : ControllerBase
     private readonly IBookRepo _bookRepo;
     private readonly IMapper _mapper;
     private readonly IValidator<BookCreateDto> _validator;
-
+    private readonly ILogger<BookController> _logger;
+    private readonly ILoggerManager _loggerx;
 
     public BookController(IBookRepo bookRepo,
         IMapper mapper,
-        IValidator<BookCreateDto> validator)
+        IValidator<BookCreateDto> validator,
+        ILogger<BookController> logger,
+        ILoggerManager loggerx)
     {
         _bookRepo = bookRepo;
         _mapper = mapper;
         _validator = validator;
-
+        _logger = logger;
+        _loggerx=loggerx;
     }
 
     [HttpGet]
     public ActionResult<IEnumerable<BookReadDto>> GetBooks()
     {
-
+        _loggerx.LogDebug("X get activated");
+        _logger.LogInformation("get activated");
         var bookItem = _bookRepo.GetAllBooks();
         return Ok(_mapper.Map<IEnumerable<BookReadDto>>(bookItem));
 

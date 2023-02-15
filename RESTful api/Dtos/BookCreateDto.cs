@@ -18,10 +18,10 @@ public class BookCreateDto
     public float Price { get; set; } = 0f;
 
     [Required]
-    
+
     public DateTime PublishDate { get; set; }
 
     [Required]
-    
+
     public string Description { get; set; }
 }

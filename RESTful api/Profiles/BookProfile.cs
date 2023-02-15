@@ -6,9 +6,9 @@ namespace RESTful_api.Profiles;
 
 public class BookProfile : Profile
 {
-	public BookProfile()
-	{
-		CreateMap<Book, BookReadDto>();
+    public BookProfile()
+    {
+        CreateMap<Book, BookReadDto>();
 
         CreateMap<BookCreateDto, Book>();
     }

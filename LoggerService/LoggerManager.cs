@@ -14,7 +14,7 @@ namespace RESTful_api.LoggerService
         {
             logger.Debug(message);
         }
-
+         
         public void LogError(string message)
         {
             logger.Error(message);

@@ -14,20 +14,20 @@ public class Book
     public string Author { get; set; } = string.Empty;
 
     [Required]
-    public string Title { get; set; }=string.Empty;
+    public string Title { get; set; } = string.Empty;
 
     [Required]
     public string Genre { get; set; } = string.Empty;
 
     [Required]
-   
+
     public float Price { get; set; }
 
     [Required]
     public DateTime PublishDate { get; set; }
 
     [Required]
-    
+
     public string Description { get; set; } = string.Empty;
 
 
