@@ -22,7 +22,7 @@ public class BookRepo : IBookRepo
 
     public IEnumerable<Book> GetAllBooks()
     {
-        return _appDbContext.Books.ToList();
+        return  _appDbContext.Books.ToList();
     }
 
     public Book GetBookById(int id)

@@ -15,28 +15,22 @@ public class BookController : ControllerBase
 {
     private readonly IBookRepo _bookRepo;
     private readonly IMapper _mapper;
-    private readonly IValidator<BookCreateDto> _validator;
-    private readonly ILogger<BookController> _logger;
-    private readonly ILoggerManager _loggerx;
+    //private readonly IValidator<BookCreateDto> _validator;
+    //private readonly ILogger<BookController> _logger;
+    //private readonly ILoggerManager _loggerx;
 
     public BookController(IBookRepo bookRepo,
-        IMapper mapper,
-        IValidator<BookCreateDto> validator,
-        ILogger<BookController> logger,
-        ILoggerManager loggerx)
+        IMapper mapper
+       )
     {
         _bookRepo = bookRepo;
         _mapper = mapper;
-        _validator = validator;
-        _logger = logger;
-        _loggerx=loggerx;
+       
     }
 
     [HttpGet]
     public ActionResult<IEnumerable<BookReadDto>> GetBooks()
     {
-        _loggerx.LogDebug("X get activated");
-        _logger.LogInformation("get activated");
         var bookItem = _bookRepo.GetAllBooks();
         return Ok(_mapper.Map<IEnumerable<BookReadDto>>(bookItem));
 
@@ -46,7 +40,6 @@ public class BookController : ControllerBase
     public ActionResult<BookReadDto> GetBookById(int id)
     {
         var bookItem = _bookRepo.GetBookById(id);
-
         if (bookItem != null)
         {
             return Ok(_mapper.Map<BookReadDto>(bookItem));
@@ -59,12 +52,12 @@ public class BookController : ControllerBase
     public ActionResult<BookReadDto> CreateBook(BookCreateDto bookCreateDto)
     {
 
-        var validatorResult = _validator.Validate(bookCreateDto);
+        //var validatorResult = _validator.Validate(bookCreateDto);
 
-        if (!validatorResult.IsValid)
-        {
-            return StatusCode(StatusCodes.Status400BadRequest, validatorResult.Errors);
-        }
+        //if (!validatorResult.IsValid)
+        //{
+        //    return StatusCode(StatusCodes.Status400BadRequest, validatorResult.Errors);
+        //}
 
         var bookModel = _mapper.Map<Book>(bookCreateDto);
         _bookRepo.CreateBook(bookModel);
