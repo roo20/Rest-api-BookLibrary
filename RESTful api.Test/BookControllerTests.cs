@@ -1,23 +1,16 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using Newtonsoft.Json;
 using RESTful_api.Controllers;
 using RESTful_api.Data;
 using RESTful_api.Dtos;
 using RESTful_api.Models;
 using RESTful_api.Profiles;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace RESTful_api.Test
 {
-    public class BookControllerTests :IDisposable
+    public class BookControllerTests : IDisposable
 
     {
         Mock<IBookRepo> mockRepo;
@@ -65,20 +58,20 @@ namespace RESTful_api.Test
         [Fact]
         public void GetAllBooks_Return200OK_WhenDBIsEmpty()
         {
-            
+
             //Arrange
-            mockRepo.Setup(repo=>repo.GetAllBooks()).Returns(GetBooks(0));
-            var controller =new BookController(mockRepo.Object,mapper);
+            mockRepo.Setup(repo => repo.GetAllBooks()).Returns(GetBooks(0));
+            var controller = new BookController(mockRepo.Object, mapper);
 
             //Act 
-            var result=controller.GetBooks();
+            var result = controller.GetBooks();
 
             //Assert
             Assert.IsType<OkObjectResult>(result.Result);
         }
 
         [Fact]
-        public void GetAllBooks_ReturnOneItem_WhenDBHasOneResource() 
+        public void GetAllBooks_ReturnOneItem_WhenDBHasOneResource()
         {
             //Arrange
             mockRepo.Setup(repo => repo.GetAllBooks()).Returns(GetBooks(1));
@@ -88,8 +81,8 @@ namespace RESTful_api.Test
             var result = controller.GetBooks();
 
             //Assert
-            var okResult=result.Result as OkObjectResult;
-            var books=okResult.Value as List<BookReadDto>;
+            var okResult = result.Result as OkObjectResult;
+            var books = okResult.Value as List<BookReadDto>;
             Assert.Single(books);
         }
 
@@ -128,7 +121,7 @@ namespace RESTful_api.Test
         {
             //Arrange
             mockRepo.Setup(repo => repo.GetBookById(0)).Returns(() => null);
-            var controller =new BookController(mockRepo.Object, mapper);
+            var controller = new BookController(mockRepo.Object, mapper);
 
             //Act
             var result = controller.GetBookById(1);
@@ -143,13 +136,13 @@ namespace RESTful_api.Test
             //Arrange
             mockRepo.Setup(repo => repo.GetBookById(1)).Returns(new Book
             {
-                Id=1,
-                Title="Test",
-                Author="Test",
-                Genre="Test",
-                Description="Test",
-                Price=0.0f,
-                PublishDate=DateTime.Now,
+                Id = 1,
+                Title = "Test",
+                Author = "Test",
+                Genre = "Test",
+                Description = "Test",
+                Price = 0.0f,
+                PublishDate = DateTime.Now,
 
             });
             var controller = new BookController(mockRepo.Object, mapper);

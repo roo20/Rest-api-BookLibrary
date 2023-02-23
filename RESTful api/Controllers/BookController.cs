@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
-using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using RESTful_api.Contracts;
 using RESTful_api.Data;
 using RESTful_api.Dtos;
 using RESTful_api.Models;
@@ -25,7 +23,7 @@ public class BookController : ControllerBase
     {
         _bookRepo = bookRepo;
         _mapper = mapper;
-       
+
     }
 
     [HttpGet]

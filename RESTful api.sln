@@ -5,11 +5,11 @@ VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RESTful api", "RESTful api\RESTful api.csproj", "{82A28CEB-1574-42D8-A9DF-48D10E19F794}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RESTful api.Test", "RESTful api.Test\RESTful api.Test.csproj", "{B1FFFCF9-EB54-4F57-9594-BE434BF43924}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RESTful api.Test", "RESTful api.Test\RESTful api.Test.csproj", "{B1FFFCF9-EB54-4F57-9594-BE434BF43924}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RESTful api.LoggerService", "LoggerService\RESTful api.LoggerService.csproj", "{23FCB31C-86FE-4C68-98DE-F7722E00014F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RESTful api.LoggerService", "LoggerService\RESTful api.LoggerService.csproj", "{23FCB31C-86FE-4C68-98DE-F7722E00014F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RESTful api.Contracts", "RESTful api.Contracts\RESTful api.Contracts.csproj", "{1DB63620-4062-4E7F-81B3-136BDAD9FA10}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RESTful api.Contracts", "RESTful api.Contracts\RESTful api.Contracts.csproj", "{1DB63620-4062-4E7F-81B3-136BDAD9FA10}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

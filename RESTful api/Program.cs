@@ -1,7 +1,6 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using NLog;
-using NLog.Web;
 using RESTful_api.Contracts;
 using RESTful_api.Data;
 using RESTful_api.Dtos;
@@ -42,7 +41,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddApiVersioning(setupAction =>
 {
     setupAction.AssumeDefaultVersionWhenUnspecified = true;
-    setupAction.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1,0);
+    setupAction.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
     setupAction.ReportApiVersions = true;
 });
 
