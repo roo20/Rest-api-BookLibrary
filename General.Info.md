@@ -122,7 +122,8 @@ public class BookRepo : IBookRepo
     }
     .
     .
-    public bool SaveChanges() // save changes normally after editing database Create(POST), Update(PUT), Delete(DELETE), PartianUpdate(PATCH)
+    // save changes normally after editing database Create(POST), Update(PUT), Delete(DELETE), PartianUpdate(PATCH)
+    public bool SaveChanges()
     {
         return (_appDbContext.SaveChanges() >= 0);
     }
@@ -135,8 +136,90 @@ public class BookRepo : IBookRepo
 builder.Services.AddScoped<IBookRepo, BookRepo>();
 ```
 
-# DTO
+# DTO (Data transfer object)
 
-# Mapper
+DTOs are used to encapsulate data from the underlying database, business logic, or other sources, and provide a standardized representation of that data that can be easily transferred over the network.
 
+- readDTO
 
+```cs
+public class BookReadDto
+{
+  public int Id { get; set; }
+
+  public string Author { get; set; } = string.Empty;
+
+  public string Title { get; set; } = string.Empty;
+
+  public string? Genre { get; set; }
+
+  public decimal Price { get; set; } = 0m;
+
+  public DateTime PublishDate { get; set; }
+
+  public string? Description { get; set; }
+}
+```
+
+- writeDTO
+
+```cs
+public class BookCreateDto
+{
+    // user should not provide an id when createing new book, that would be
+    // automatically generated and sent back after successful creating a new book
+    [Required]
+    public string Author { get; set; } = string.Empty;
+
+    [Required]
+    public string Title { get; set; } = string.Empty;
+
+    [Required]
+    public string Genre { get; set; }= string.Empty;
+
+    [Required]
+    public float Price { get; set; } = 0f;
+
+    [Required]
+    public DateTime PublishDate { get; set; }
+
+    [Required]
+    public string Description { get; set; }= string.Empty;
+}
+```
+
+- UpdateDTO
+
+# Mapper (Auto mapper)
+
+install the package
+
+```coffeescript
+dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection
+```
+
+add Service inside the **Program.cs**
+
+```cs
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+```
+
+create profile for AutoMapper
+
+```cs
+public class BookProfile : Profile
+{
+    public BookProfile()
+    {
+        //this mapping only work one way (source => distenation) if it needed to
+        //be both ways has to create new map for it
+        // if the naming of properties are the same automapper take care of the wiring
+        //otherwise has to be stated how
+        // https://docs.automapper.org
+
+        CreateMap<Book, BookReadDto>();
+        CreateMap<BookCreateDto, Book>();
+    }
+
+}
+```
