@@ -15,6 +15,18 @@
 
 ### HTTP Response codes
 
+```c
+Code	Status	                Description
+200	OK	                The request was successful.
+201	Created	                The request has been fulfilled and a new resource has been created.
+204	No Content	        The request has been successfully processed, but there is no content to send back.
+400	Bad Request	        The server could not understand the request due to invalid syntax.
+401	Unauthorized	        The user is not authorized to access the requested resource.
+403	Forbidden	        The server understood the request, but is refusing to fulfill it.
+404	Not Found	        The requested resource could not be found.
+500	Internal Server Error	The server encountered an unexpected condition that prevented it from fulfilling the request.
+```
+
 # first setup
 
 ### Controller
