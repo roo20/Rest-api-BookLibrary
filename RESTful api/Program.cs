@@ -28,6 +28,7 @@ builder.Services.AddScoped<IBookRepo, BookRepo>();
 builder.Services.AddScoped<IValidator<BookCreateDto>, BookValidator>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<ILoggerManager, LoggerManager>();
+builder.Services.AddTransient<IPropertyMappingService, PropertyMappingService>();
 
 builder.Logging.ClearProviders();
 //builder.Logging.AddDebug();

@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using RESTful_api.Data;
 using RESTful_api.Dtos;
+using RESTful_api.Helpers;
 using RESTful_api.Models;
+using RESTful_api.ResourceParameters;
 
 namespace RESTful_api.Controllers;
 
@@ -26,10 +29,28 @@ public class BookController : ControllerBase
 
     }
 
-    [HttpGet]
-    public ActionResult<IEnumerable<BookReadDto>> GetBooks()
+    [HttpGet(Name ="GetBooks")]
+    public ActionResult GetBooks(
+        [FromQuery] BookResourceParameters bookResourceParameters
+        )
     {
-        var bookItem = _bookRepo.GetAllBooks();
+        var bookItem = _bookRepo.GetAllBooks(bookResourceParameters);
+        var previousPageLink=bookItem.HasPrevious ? CreateBookResourceUri(bookResourceParameters,ResourceUriType.Previous) : null;
+        var nextPageLink = bookItem.HasNext ? CreateBookResourceUri(bookResourceParameters, ResourceUriType.Next) : null;
+
+        var pageinationMetadata = new
+        {
+            totalcount=bookItem.TotalCount,
+            pageSize=bookItem.PageSize,
+            currentPage=bookItem.CurrentPage,
+            totalPages=bookItem.TotalPages,
+            previousPageLink=previousPageLink,
+            nextPageLink=nextPageLink
+        };
+       
+
+        Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(pageinationMetadata));
+
         return Ok(_mapper.Map<IEnumerable<BookReadDto>>(bookItem));
 
     }
@@ -79,4 +100,36 @@ public class BookController : ControllerBase
         return NoContent();
     }
 
+
+    private string? CreateBookResourceUri( BookResourceParameters bookResourceParameters,ResourceUriType type)
+    {
+        switch (type)
+        {
+            case ResourceUriType.Previous:
+                return Url.Link("GetBooks", new
+                {
+                    pageNumber=bookResourceParameters.PageNumber-1,
+                    pageSize=bookResourceParameters.PageSize,
+                    genre=bookResourceParameters.Genre,
+                    searchQuery=bookResourceParameters.SearchQuery,
+                });
+            case ResourceUriType.Next:
+                return Url.Link("GetBooks", new
+                {
+                    pageNumber = bookResourceParameters.PageNumber + 1,
+                    pageSize = bookResourceParameters.PageSize,
+                    genre = bookResourceParameters.Genre,
+                    searchQuery = bookResourceParameters.SearchQuery,
+                });
+            default:
+                return Url.Link("GetBooks", new
+                {
+                    pageNumber = bookResourceParameters.PageNumber,
+                    pageSize = bookResourceParameters.PageSize,
+                    genre = bookResourceParameters.Genre,
+                    searchQuery = bookResourceParameters.SearchQuery,
+                });
+        }
+
+    }
 }
