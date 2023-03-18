@@ -1,11 +1,14 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Newtonsoft.Json;
 using RESTful_api.Data;
 using RESTful_api.Dtos;
 using RESTful_api.Helpers;
 using RESTful_api.Models;
 using RESTful_api.ResourceParameters;
+using RESTful_api.Services;
 
 namespace RESTful_api.Controllers;
 
@@ -16,17 +19,23 @@ public class BookController : ControllerBase
 {
     private readonly IBookRepo _bookRepo;
     private readonly IMapper _mapper;
-    //private readonly IValidator<BookCreateDto> _validator;
-    //private readonly ILogger<BookController> _logger;
-    //private readonly ILoggerManager _loggerx;
-
+    private readonly IPropertyMappingService _propertyMappingService;
+    private readonly IPropertyCheckerService _propertyCheckerService;
+    private readonly ProblemDetailsFactory _problemDetailsFactory;
     public BookController(IBookRepo bookRepo,
         IMapper mapper
+        , IPropertyMappingService propertyMappingService
+        , IPropertyCheckerService propertyCheckerService
+        , ProblemDetailsFactory problemDetailsFactory
+       
        )
     {
         _bookRepo = bookRepo;
         _mapper = mapper;
-
+        _propertyMappingService = propertyMappingService;
+        _propertyCheckerService = propertyCheckerService;
+        _problemDetailsFactory = problemDetailsFactory;
+       
     }
 
     [HttpGet(Name ="GetBooks")]
@@ -34,10 +43,22 @@ public class BookController : ControllerBase
         [FromQuery] BookResourceParameters bookResourceParameters
         )
     {
+        if (!_propertyMappingService.ValidMappingExistsFor<BookReadDto,Book>(bookResourceParameters.OrderBy))
+        {
+            return BadRequest();
+        }
+
+        if (!_propertyCheckerService.TypeHasProperties<BookReadDto>(bookResourceParameters.Fields))
+        {
+            return BadRequest(
+                _problemDetailsFactory.CreateProblemDetails(HttpContext,
+                statusCode:400,
+                detail:$"Not All Requested data shaping fields exits on the resource : {bookResourceParameters.Fields}"));
+        }
+
         var bookItem = _bookRepo.GetAllBooks(bookResourceParameters);
         var previousPageLink=bookItem.HasPrevious ? CreateBookResourceUri(bookResourceParameters,ResourceUriType.Previous) : null;
         var nextPageLink = bookItem.HasNext ? CreateBookResourceUri(bookResourceParameters, ResourceUriType.Next) : null;
-
         var pageinationMetadata = new
         {
             totalcount=bookItem.TotalCount,
@@ -51,18 +72,27 @@ public class BookController : ControllerBase
 
         Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(pageinationMetadata));
 
-        return Ok(_mapper.Map<IEnumerable<BookReadDto>>(bookItem));
+        return Ok(_mapper.Map<IEnumerable<BookReadDto>>(bookItem)
+            .ShapeData(bookResourceParameters.Fields));
 
     }
 
     [HttpGet("{id}", Name = "GetBookById")]
-    public ActionResult<BookReadDto> GetBookById(int id)
+    public ActionResult GetBookById(int id, [FromQuery] string? fields)
     {
         var bookItem = _bookRepo.GetBookById(id);
+
+        if (!_propertyCheckerService.TypeHasProperties<BookReadDto>(fields))
+        {
+            return BadRequest(
+                _problemDetailsFactory.CreateProblemDetails(HttpContext,
+                statusCode: 400,
+                detail: $"Not All Requested data shaping fields exits on the resource : {fields}"));
+        }
+
         if (bookItem != null)
         {
-            return Ok(_mapper.Map<BookReadDto>(bookItem));
-
+            return Ok(_mapper.Map<BookReadDto>(bookItem).ShapeData(fields));
         }
         return NotFound();
     }
@@ -108,6 +138,8 @@ public class BookController : ControllerBase
             case ResourceUriType.Previous:
                 return Url.Link("GetBooks", new
                 {
+                    fields = bookResourceParameters.Fields,
+                    orderBy =bookResourceParameters.OrderBy,
                     pageNumber=bookResourceParameters.PageNumber-1,
                     pageSize=bookResourceParameters.PageSize,
                     genre=bookResourceParameters.Genre,
@@ -116,6 +148,8 @@ public class BookController : ControllerBase
             case ResourceUriType.Next:
                 return Url.Link("GetBooks", new
                 {
+                    fields=bookResourceParameters.Fields,
+                    orderBy = bookResourceParameters.OrderBy,
                     pageNumber = bookResourceParameters.PageNumber + 1,
                     pageSize = bookResourceParameters.PageSize,
                     genre = bookResourceParameters.Genre,
@@ -124,6 +158,8 @@ public class BookController : ControllerBase
             default:
                 return Url.Link("GetBooks", new
                 {
+                    fields = bookResourceParameters.Fields,
+                    orderBy = bookResourceParameters.OrderBy,
                     pageNumber = bookResourceParameters.PageNumber,
                     pageSize = bookResourceParameters.PageSize,
                     genre = bookResourceParameters.Genre,

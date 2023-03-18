@@ -5,6 +5,7 @@ using RESTful_api.Contracts;
 using RESTful_api.Data;
 using RESTful_api.Dtos;
 using RESTful_api.LoggerService;
+using RESTful_api.Services;
 using RESTful_api.Validators;
 
 
@@ -29,6 +30,7 @@ builder.Services.AddScoped<IValidator<BookCreateDto>, BookValidator>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<ILoggerManager, LoggerManager>();
 builder.Services.AddTransient<IPropertyMappingService, PropertyMappingService>();
+builder.Services.AddTransient<IPropertyCheckerService, PropertyCheckerService>();
 
 builder.Logging.ClearProviders();
 //builder.Logging.AddDebug();
