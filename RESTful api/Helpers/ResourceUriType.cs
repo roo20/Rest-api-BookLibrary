@@ -3,6 +3,7 @@
     public enum ResourceUriType
     {
         Next,
-        Previous
+        Previous,
+        Current
     }
 }

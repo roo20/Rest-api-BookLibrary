@@ -12,25 +12,16 @@ public static class ObjectExtentions
         //create an expandoObject => will be the result
         var dataShapedObject = new ExpandoObject();
 
-
-        // create list of PropertyInfo object on TSource
-        //Reflaction is Expinsive, so rather than doing that for 
-        //each item we do it for a whole list and reuse the result
-        //create ExpandoObject that will hold the
-        //Selected Property and Value
-        var propertyInfoList = new List<PropertyInfo>();
-
-
-
+       
         if (string.IsNullOrWhiteSpace(fields))
         {
-
             //include all public properties
-            var propertyInfos = typeof(TSource).GetProperties(BindingFlags.IgnoreCase
+            var propertyInfos = typeof(TSource)
+                .GetProperties(BindingFlags.IgnoreCase
                 | BindingFlags.Public
                 | BindingFlags.Instance);
 
-            foreach (var propertyInfo in propertyInfoList)
+            foreach (var propertyInfo in propertyInfos)
             {
                 // GetValue return the value of the property on source object
                 var propertyValue = propertyInfo.GetValue(source);

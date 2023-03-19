@@ -1,4 +1,6 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using NLog;
 using RESTful_api.Contracts;
@@ -20,6 +22,7 @@ builder.Services.AddControllers(options =>
 {
     options.RespectBrowserAcceptHeader = true;
     options.ReturnHttpNotAcceptable = true;
+    
 }).AddNewtonsoftJson()
 .AddXmlDataContractSerializerFormatters();
 
@@ -36,6 +39,14 @@ builder.Logging.ClearProviders();
 //builder.Logging.AddDebug();
 //builder.Host.UseNLog();
 
+builder.Services.Configure<MvcOptions>(config => 
+{ 
+    var newtonsoftJsonOutputFormatter=config.OutputFormatters.OfType<NewtonsoftJsonOutputFormatter>().FirstOrDefault();
+    if(newtonsoftJsonOutputFormatter != null)
+    {
+        newtonsoftJsonOutputFormatter.SupportedMediaTypes.Add("application/vnd.company.hateoas+json");
+    }
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

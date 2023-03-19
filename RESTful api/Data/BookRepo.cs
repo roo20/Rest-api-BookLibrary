@@ -57,7 +57,6 @@ public class BookRepo : IBookRepo
         }
 
         //Sorting
-
         if (!string.IsNullOrWhiteSpace(bookResourceParameters.OrderBy))
         {
             var bookPropertyMappingDictionary = _propertyMappingService.GetPropertyMapping<BookReadDto,Book>();

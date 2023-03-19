@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using RESTful_api.Data;
 using RESTful_api.Dtos;
@@ -27,7 +28,6 @@ public class BookController : ControllerBase
         , IPropertyMappingService propertyMappingService
         , IPropertyCheckerService propertyCheckerService
         , ProblemDetailsFactory problemDetailsFactory
-       
        )
     {
         _bookRepo = bookRepo;
@@ -35,19 +35,30 @@ public class BookController : ControllerBase
         _propertyMappingService = propertyMappingService;
         _propertyCheckerService = propertyCheckerService;
         _problemDetailsFactory = problemDetailsFactory;
-       
     }
 
     [HttpGet(Name ="GetBooks")]
     public ActionResult GetBooks(
-        [FromQuery] BookResourceParameters bookResourceParameters
+        [FromQuery] BookResourceParameters bookResourceParameters,
+        [FromHeader(Name ="Accept")] string? mediaType
         )
     {
+        //check if the mediatype is valid media type
+        if (!MediaTypeHeaderValue.TryParse(mediaType,out var parsedMediaType))
+        {
+            return BadRequest(
+                _problemDetailsFactory.CreateProblemDetails(HttpContext,
+                statusCode: 400,
+                detail: $"Accept header media type value is not a valid media type"));
+        }
+
+        //Check if Order Parameters are valid
         if (!_propertyMappingService.ValidMappingExistsFor<BookReadDto,Book>(bookResourceParameters.OrderBy))
         {
             return BadRequest();
         }
 
+        //Check if  datashaping Field Parameters are valid
         if (!_propertyCheckerService.TypeHasProperties<BookReadDto>(bookResourceParameters.Fields))
         {
             return BadRequest(
@@ -56,30 +67,60 @@ public class BookController : ControllerBase
                 detail:$"Not All Requested data shaping fields exits on the resource : {bookResourceParameters.Fields}"));
         }
 
+        //get books from repo after applying (filter, searching, sorting and Paging)
         var bookItem = _bookRepo.GetAllBooks(bookResourceParameters);
-        var previousPageLink=bookItem.HasPrevious ? CreateBookResourceUri(bookResourceParameters,ResourceUriType.Previous) : null;
-        var nextPageLink = bookItem.HasNext ? CreateBookResourceUri(bookResourceParameters, ResourceUriType.Next) : null;
+
+        //setup Pagination links
         var pageinationMetadata = new
         {
             totalcount=bookItem.TotalCount,
             pageSize=bookItem.PageSize,
             currentPage=bookItem.CurrentPage,
-            totalPages=bookItem.TotalPages,
-            previousPageLink=previousPageLink,
-            nextPageLink=nextPageLink
+            totalPages=bookItem.TotalPages
         };
-       
-
+        //add pagination to header response
         Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(pageinationMetadata));
 
-        return Ok(_mapper.Map<IEnumerable<BookReadDto>>(bookItem)
-            .ShapeData(bookResourceParameters.Fields));
+        //create links
+        var links = CreateLinkForBooks(bookResourceParameters,bookItem.HasNext,bookItem.HasPrevious);
+
+        //shaped data
+        var shapedBooks = _mapper.Map<IEnumerable<BookReadDto>>(bookItem)
+            .ShapeData(bookResourceParameters.Fields);
+
+        var shapedBooksWithLinks = shapedBooks.Select(book => {
+            var bookAsDictionary = book as IDictionary<string, object?>;
+            var bookLinks = CreateLinkForBook(
+                (int)bookAsDictionary["Id"]
+                , null);
+            bookAsDictionary.Add("links", bookLinks);
+            return bookAsDictionary;
+        });
+
+        var linkedCollectionResource = new 
+        { 
+            value=shapedBooksWithLinks,
+            links=links
+        };
+        
+        //return bookitem and apply datashaping at the end 
+        return Ok(linkedCollectionResource);
 
     }
 
     [HttpGet("{id}", Name = "GetBookById")]
-    public ActionResult GetBookById(int id, [FromQuery] string? fields)
+    public ActionResult GetBookById(int id,
+        [FromQuery] string? fields,
+        [FromHeader(Name = "Accept")] string? mediaType)
     {
+        if (!MediaTypeHeaderValue.TryParse(mediaType, out var parsedMediaType))
+        {
+            return BadRequest(
+                _problemDetailsFactory.CreateProblemDetails(HttpContext,
+                statusCode: 400,
+                detail: $"Accept header media type value is not a valid media type"));
+        }
+
         var bookItem = _bookRepo.GetBookById(id);
 
         if (!_propertyCheckerService.TypeHasProperties<BookReadDto>(fields))
@@ -90,31 +131,46 @@ public class BookController : ControllerBase
                 detail: $"Not All Requested data shaping fields exits on the resource : {fields}"));
         }
 
-        if (bookItem != null)
+        if (bookItem == null) return NotFound();
+
+        if (parsedMediaType.MediaType=="application/vnd.company.hateoas+json")
         {
-            return Ok(_mapper.Map<BookReadDto>(bookItem).ShapeData(fields));
+            //create links
+            var links = CreateLinkForBook(id, fields);
+
+            var LinkedResourceToRetrun = _mapper
+                .Map<BookReadDto>(bookItem)
+                .ShapeData(fields)
+                as IDictionary<string, object?>;
+            LinkedResourceToRetrun.Add("links", links);
+
+            return Ok(LinkedResourceToRetrun); 
         }
-        return NotFound();
+        return Ok(_mapper
+                .Map<BookReadDto>(bookItem)
+                .ShapeData(fields));
     }
 
-    [HttpPost]
+    [HttpPost(Name ="CreateBook")]
     public ActionResult<BookReadDto> CreateBook(BookCreateDto bookCreateDto)
     {
-
-        //var validatorResult = _validator.Validate(bookCreateDto);
-
-        //if (!validatorResult.IsValid)
-        //{
-        //    return StatusCode(StatusCodes.Status400BadRequest, validatorResult.Errors);
-        //}
-
         var bookModel = _mapper.Map<Book>(bookCreateDto);
         _bookRepo.CreateBook(bookModel);
         _bookRepo.SaveChanges();
 
         var bookReadDto = _mapper.Map<BookReadDto>(bookModel);
 
-        return CreatedAtRoute(nameof(GetBookById), new { id = bookReadDto.Id }, bookReadDto);
+
+        //create links
+        var links = CreateLinkForBook(bookReadDto.Id, null);
+
+        var LinkedResourceToRetrun = bookReadDto.ShapeData(null)
+            as IDictionary<string, object?>;
+       
+        LinkedResourceToRetrun.Add("links", links);
+
+
+        return CreatedAtRoute(nameof(GetBookById), new { id = LinkedResourceToRetrun["Id"] }, LinkedResourceToRetrun);
     }
 
     [HttpDelete("{id}")]
@@ -130,7 +186,7 @@ public class BookController : ControllerBase
         return NoContent();
     }
 
-
+    #region helpers   
     private string? CreateBookResourceUri( BookResourceParameters bookResourceParameters,ResourceUriType type)
     {
         switch (type)
@@ -155,6 +211,7 @@ public class BookController : ControllerBase
                     genre = bookResourceParameters.Genre,
                     searchQuery = bookResourceParameters.SearchQuery,
                 });
+            case ResourceUriType.Current:
             default:
                 return Url.Link("GetBooks", new
                 {
@@ -168,4 +225,49 @@ public class BookController : ControllerBase
         }
 
     }
+
+    private IEnumerable<LinkDto> CreateLinkForBook (int  bookId, string? fields)
+    {
+        var links = new List<LinkDto>();
+
+        if (!string.IsNullOrWhiteSpace(fields))
+        {
+            links.Add(
+                new(Url.Link("GetBooks",new { bookId, fields}),
+                "self",
+                "Get"));
+        }
+        else
+        {
+            links.Add(
+               new(Url.Link("GetBooks", new { bookId}),
+               "self",
+               "Get"));
+        }
+        return links;
+    }
+
+    private IEnumerable<LinkDto> CreateLinkForBooks(
+        BookResourceParameters bookResourceParameters,
+        bool hasNext,
+        bool hasPrevious)
+    {
+        var links = new List<LinkDto>();
+
+        links.Add(new(CreateBookResourceUri(bookResourceParameters,ResourceUriType.Current),"self","GET"));
+
+        if (hasNext)
+        {
+            links.Add(new(CreateBookResourceUri(bookResourceParameters, ResourceUriType.Next), "nextPage", "GET"));
+        }
+        if (hasPrevious)
+        {
+            links.Add(new(CreateBookResourceUri(bookResourceParameters, ResourceUriType.Previous), "previousPage", "GET"));
+        }
+        return links;
+    }
+
+
+    #endregion
+
 }
