@@ -362,3 +362,8 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /RESTful api/Converter/DateConverter.cs
+/launchSettings.json
+/docker-compose.yml
+/docker-compose.override.yml
+/docker-compose.dcproj
+/.dockerignore
